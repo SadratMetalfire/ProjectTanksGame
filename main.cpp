@@ -7,6 +7,13 @@
 //Global variables
 static sf::Vector2f WindowSize;
 
+class Tank : sf::RectangleShape{
+    float Speed;
+
+
+
+};
+
 void GenerateMap(sf::ConvexShape &Polygon,int HorizontalOffset, int VerticalOffset){
     int PointCount = static_cast<int>((WindowSize.x / HorizontalOffset) + 2);
     int Reminder = static_cast<int>(WindowSize.x) % HorizontalOffset;
@@ -54,12 +61,22 @@ void GenerateMap(sf::ConvexShape &Polygon,int HorizontalOffset, int VerticalOffs
 
 int main()
 {
+    srand(static_cast<unsigned int>(time(nullptr)));
+
+    WindowSize = sf::Vector2f(800,600);
 
     sf::RenderWindow Window(sf::VideoMode(static_cast <unsigned int>(WindowSize.x), static_cast <unsigned int>(WindowSize.y)), "My window");
     Window.setFramerateLimit(60);
     Window.setVerticalSyncEnabled(true);
 
     sf::Event Event;
+    sf::Clock GameClock;
+
+    sf::ConvexShape Polygon;
+    GenerateMap(Polygon,25,50);
+
+    sf::RectangleShape Player(sf::Vector2f(25,25));
+    Player.setPosition(0,400);
 
     while (Window.isOpen()) {
         while (Window.pollEvent(Event)) {
@@ -69,7 +86,10 @@ int main()
         }
 
         Window.clear(sf::Color::Black);
+        Window.draw(Polygon);
+        Window.draw(Player);
 
+        GameClock.restart();
         Window.display();
     }
     return 0;
