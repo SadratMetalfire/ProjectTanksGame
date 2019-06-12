@@ -10,13 +10,35 @@
 static sf::Vector2f WindowSize;
 static std::vector<sf::Vector2f> ArrayOfPoints;
 
+static float Gravity;
+static float Wind;
+
 class Shot : public sf::CircleShape{
-    //On lab :D
+   float VerticalSpeed, HorizontalSpeed;
+   float DMG;
+   float BlastRadious;
+
+public:
+   Shot(float NewRadious, float NewVerticalSpeed, float NewHorizontalSpeed, float NewDMG, float NewBlastRadious) : sf::CircleShape(NewRadious){
+       VerticalSpeed = NewVerticalSpeed;
+       HorizontalSpeed = NewHorizontalSpeed;
+       DMG = NewDMG;
+       BlastRadious = NewBlastRadious;
+   }
+
+   void Step(sf::Time ElapsedTime){
+        move(HorizontalSpeed * ElapsedTime.asSeconds(),VerticalSpeed * ElapsedTime.asSeconds());
+
+        //VerticalSpeed += Gravity * ElapsedTime.asSeconds();
+        //HorizontalSpeed -= Wind * ElapsedTime.asSeconds();
+   }
 };
 
 class Tank : public sf::RectangleShape{
     float Speed;
     std::string Side;
+
+    sf::RectangleShape TankBarrel;
 
     int IndexLeft,IndexCenter,IndexRight;
 
@@ -34,14 +56,22 @@ public:
             IndexLeft = IndexCenter - 1;
             IndexRight = IndexCenter + 1;
             setPosition(ArrayOfPoints[IndexCenter].x,0);
+            setFillColor(sf::Color(rand() % 255 , rand() % 255, rand() % 255));
         }else if(Side == "Right"){
             IndexCenter = ArrayOfPoints.size() - 5;
             IndexLeft = IndexCenter + 1;
             IndexRight = IndexCenter - 1;
             setPosition(ArrayOfPoints[IndexCenter].x,0);
+            setFillColor(sf::Color(rand() % 255 , rand() % 255, rand() % 255));
         }
+
+        TankBarrel.setSize(sf::Vector2f(5,20));
+        TankBarrel.setFillColor(getFillColor());
+        TankBarrel.setOrigin(TankBarrel.getLocalBounds().width / 2 , TankBarrel.getLocalBounds().height);
+        TankBarrel.setPosition(getPosition());
     }
 
+    sf::RectangleShape &GetTankBarrel(){return TankBarrel;}
 
     void FindClosestPointsIndexes(std::string Direction){
         float CurrentDistance,SmallestDistane = WindowSize.x + 200;
@@ -139,6 +169,7 @@ public:
         if(TempX > (getLocalBounds().height / 2) && TempX < (WindowSize.x - getLocalBounds().height / 2)){
             setPosition(sf::Vector2f(TempX,TempY - getLocalBounds().height / 2));
             setRotation(Angle * 180 / 3.14f);
+            TankBarrel.setPosition(getPosition());
         }
     }
 
@@ -214,11 +245,17 @@ int main()
     sf::Event Event;
     sf::Clock GameClock;
 
+    Gravity = 15;
+    Wind = 15;
+
     sf::ConvexShape Polygon;
     GenerateMap(Polygon,25,50);
 
     Tank Player1(sf::Vector2f(20,15),50, "Left");
     Tank Player2(sf::Vector2f(20,15),50, "Right");
+
+    Shot Test1(5,-15,25,15,3);
+    Test1.setPosition(sf::Vector2f(0,400));
 
     while (Window.isOpen()) {
         while (Window.pollEvent(Event)) {
@@ -229,11 +266,19 @@ int main()
 
         Window.clear(sf::Color::Black);
         Window.draw(Polygon);
+
         Window.draw(Player1);
+        Window.draw(Player1.GetTankBarrel());
+
         Window.draw(Player2);
+        Window.draw(Player2.GetTankBarrel());
+
+        //Window.draw(Test1);
 
         Player1.Step(GameClock.getElapsedTime());
         Player2.Step(GameClock.getElapsedTime());
+
+        //Test1.Step(GameClock.getElapsedTime());
 
         GameClock.restart();
         Window.display();
